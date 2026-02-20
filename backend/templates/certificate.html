@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: 'Helvetica', sans-serif;
+            text-align: center;
+            padding: 50px;
+            border: 10px solid #787878;
+        }
+        .container {
+            width: 800px;
+            height: 600px;
+            padding: 20px;
+            text-align: center;
+            border: 5px solid #787878;
+            position: relative;
+        }
+        .header {
+            font-size: 50px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .sub-header {
+            font-size: 25px;
+            margin-bottom: 20px;
+        }
+        .content {
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+        .name {
+            font-size: 30px;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        .signature {
+            border-top: 1px solid black;
+            width: 200px;
+            margin-top: 50px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 12px;
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">Certificate of Completion</div>
+        <div class="sub-header">This is to certify that</div>
+        <div class="name">{{ student_name }}</div>
+        <div class="content">
+            <br>
+            has successfully completed the course
+            <br><br>
+            <b>{{ course_name }}</b>
+        </div>
+        <div class="content">
+            Issued on: {{ issued_at }}
+        </div>
+        
+        <div class="footer">
+            Certificate ID: {{ cert_id }}
+            <br>
+            Digital Signature: {{ signature }}
+        </div>
+    </div>
+</body>
+</html>
