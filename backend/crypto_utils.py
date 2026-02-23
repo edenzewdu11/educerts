@@ -8,18 +8,27 @@ from jose.constants import ALGORITHMS
 # generated keys if we want to go full robust.
 # For this implementation, let's use a generated RSA key pair for the issuer.
 
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization, hashes
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric import ed25519
+from cryptography.hazmat.primitives import serialization
 import base64
 
-# Generate a global issuer key for demonstration purposes
-# In a real app, this would be loaded from a secure environment variable or KMS
-private_key = rsa.generate_private_key(
-    public_exponent=65537,
-    key_size=2048,
-)
+# Load or generate a persistent issuer key
+import os
+
+KEY_FILE = "issuer_private_key.pem"
+
+if os.path.exists(KEY_FILE):
+    with open(KEY_FILE, "rb") as f:
+        private_key = serialization.load_pem_private_key(f.read(), password=None)
+else:
+    private_key = ed25519.Ed25519PrivateKey.generate()
+    with open(KEY_FILE, "wb") as f:
+        f.write(private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption()
+        ))
+
 public_key = private_key.public_key()
 
 def get_public_key_pem():
@@ -35,33 +44,16 @@ def hash_data(data: dict) -> bytes:
     digest = hashlib.sha256(canonical_json.encode('utf-8')).digest()
     return digest
 
-def sign_data(data: dict) -> str:
-    """Sign the hash of the data using the issuer's private key."""
-    data_hash = hash_data(data)
-    signature = private_key.sign(
-        data_hash,
-        padding.PSS(
-            mgf=padding.MGF1(hashes.SHA256()),
-            salt_length=padding.PSS.MAX_LENGTH
-        ),
-        hashes.SHA256()
-    )
+def sign_data(data_str: str) -> str:
+    """Sign a string (usually the Merkle Root) using the issuer's private key."""
+    signature = private_key.sign(data_str.encode('utf-8'))
     return base64.b64encode(signature).decode('utf-8')
 
-def verify_signature(data: dict, signature_b64: str) -> bool:
+def verify_signature(data_str: str, signature_b64: str) -> bool:
     """Verify the signature against the data using the issuer's public key."""
     try:
-        data_hash = hash_data(data)
         signature = base64.b64decode(signature_b64)
-        public_key.verify(
-            signature,
-            data_hash,
-            padding.PSS(
-                mgf=padding.MGF1(hashes.SHA256()),
-                salt_length=padding.PSS.MAX_LENGTH
-            ),
-            hashes.SHA256()
-        )
+        public_key.verify(signature, data_str.encode('utf-8'))
         return True
-    except (InvalidSignature, Exception):
+    except Exception:
         return False

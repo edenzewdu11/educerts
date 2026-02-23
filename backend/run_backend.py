@@ -5,8 +5,7 @@ import traceback
 if __name__ == "__main__":
     print("Starting EduCerts Backend via uvicorn.run...")
     try:
-        from main import app
-        uvicorn.run(app, host="0.0.0.0", port=8000, log_level="debug")
+        uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level="debug", reload=True)
     except Exception as e:
         print("!!! BACKEND CRASHED DURING STARTUP !!!")
         print(f"Error type: {type(e)}")
